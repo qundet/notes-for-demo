@@ -1,0 +1,63 @@
+-------MediaWiki+MySQL-----------
+поменять порт Альтератора на произвольный (например 8081)
+vim /etc/ahttpd/ahttpd.conf
+	server-port 8081
+systemctl restart ahttpd
+
+apt-get install docker-engine docker-compose -y
+usermod -aG docker admin
+systemctl start docker
+
+====выходим из учетной записи root===========
+Exit  выходим из учетной для обновления списка групп, и входим снова
+
+docker pull mediawiki
+docker pull mysql
+docker images
+
+Составляем конфигурацию docker-compose. Строчка wiki: volumes пока должна
+быть закомментирована "#"
+vim wiki.yml
+
+docker-compose -f wiki.yml config <----проверка синтаксиса
+
+docker-compose -f wiki.yml up -d <-- запуск контейнеров
+
+docker ps < --- просмотр работающих контейнеров
+	http://127.0.0.1:8080
+Хост базы данных: db
+Имя базы данных (без дефисов): mediawiki
+Имя пользователя базы данных: wiki
+Пароль базы данных: DEP@ssw0rd
+
+Копируем файл LocalSettings.php из загрузки в корень домашнего
+каталога
+
+Просмотреть логи запущенной конфигурации можно командой:
+
+docker-compose -f wiki.yml logs
+
+
+//wiki
+
+services:
+  wiki:
+    image: mediawiki
+    container_name: wiki
+    ports:
+      - 8080:80
+    links:
+      - db
+#    volumes: [ ~/LocalSettings.php:/var/www/html/LocalSettings.php ]
+  db:
+    image: mysql
+    container_name: db
+    hostname: db
+    environment:
+      MYSQL_DATABASE: mediawiki
+      MYSQL_USER: wiki
+      MYSQL_PASSWORD: DEP@ssw0rd
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+    volumes: [ dbvolume:/var/lib/mysql ]
+volumes:
+  dbvolume:
