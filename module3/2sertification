@@ -1,0 +1,13 @@
+HQ-SRV
+
+Установка пакета
+apt-get install easy-rsa
+Инициализация PKI
+easyrsa init-pki
+Создание УЦ (build-ca)
+easyrsa build-ca nopass
+Создание сертификаты для веб серверов
+easyrsa build-server-full br-srv.br.work nopass
+Переходим в учетную запись обычного пользователя
+ssh-keygen
+ssh-copy-id admin@ «IP адрес» - и так со всеми хостами, на всех хостах

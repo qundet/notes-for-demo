@@ -1,0 +1,35 @@
+Реализуйте мониторинг по средствам rsyslog
+
+HQ-R
+apt-get install rsyslog-server-listen rsyslog-classic -y
+------------------------------------
+vim /etc/systemd/journald.conf
+ForwardToSyslog=yes
+systemctl restart systemd-journald.service
+------------------------------------
+vim /etc/rsyslog.d/09_cli.conf
+$template dyn, "/var/log/%HOSTNAME%/%PROGRAMNAME%.log"
+*.* ?dyn
+& stop
+------------------------------------
+systemctl enable --now rsyslog
+-----------------------проверка-----------------
+ss -lunp | grep rsyslogd
+ls -lt /var/log/
+ls -lt /var/log/hq-r/
+systemctl restart crond
+cat /var/log/hq-r/systemd.log
+
+
+ALL
+apt-get install rsyslog-classic -y
+------------------------------------
+vim /etc/systemd/journald.conf
+ForwardToSyslog=yes
+------------------------------------
+systemctl restart systemd-journald.service
+------------------------------------
+vim /etc/rsyslog.d/09_to_server.conf
+*.* @192.168.100.1:514
+------------------------------------
+systemctl enable –-now rsyslog

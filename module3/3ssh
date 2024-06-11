@@ -1,0 +1,43 @@
+SSH3
+
+HQ-SRV
+Копируем файл
+cp /etc/openssh/sshd_config /home/admin/
+cd /home/admin
+chmod 666 sshd_config
+проделать не всех хостах
+echo 'Authorized access only!' > /etc/openssh/banner
+
+Banner ( Authorized access only! );
+	в /etc/openssh/sshd_config
+		#Banner none ---> Banner /etc/openssh/
+b. Установите запрет на доступ root;
+	#PermitRootLogin without-password ---> PermitRootLogin no
+	
+c. Отключите аутентификацию по паролю;
+	#PasswordAuthentication yes -> PasswordAuthentication no
+	
+d. Переведите на нестандартный порт;
+	задать "нестандартный" порт ----> Port 2222
+
+e. Ограничьте ввод попыток до 4;
+	MaxAuthTries 6 -> 4
+	
+f. Отключите пустые пароли;
+	#PermitEmptyPasswords no <-------- раскомментировать
+	
+g. Установите предел времени аутентификации до 5 минут;
+	#LoginGraceTime 2m -----> LoginGraceTime 5m
+	
+h. Установите авторизацию по сертификату
+	#PasswordAuthentication yes----->PasswordAuthentication no
+	
+Скопировать на все хосты
+scp sshd_config admin@«IP адрес»:~/
+поменять права на прежние
+chmod 600 sshd_config
+скопировать в каталог
+cp /home/admin/sshd_config /etc/openssh/
+перезагрузить сервис – В САМОМ КОНЦЕ
+systemctl restart sshd
+

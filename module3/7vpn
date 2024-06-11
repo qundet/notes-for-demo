@@ -1,0 +1,49 @@
+Между офисами HQ и BRANCH установите защищенный туннель
+
+HQ-R
+apt-get install - wireguard-tools wireguard-tools-wg-quick -y
+mkdir -p /etc/wireguard/keys; cd /etc/wireguard/keys
+создаем ключи
+wg genkey | tee srv-sec.key | wg pubkey > srv-pub.key
+wg genkey | tee br-sec.key | wg pubkey > br-pub.key
+копируем ключи
+cat srv-sec.key br-pub.key >> /etc/wireguard/wg0.conf
+
+vim /etc/wireguard/wg0.conf
+	[Interface]
+	Address = 1.2.3.1/29
+	ListenPort = 12345
+	PrivateKey = ---> /etc/wireguard/keys/srv-sec.key
+	Table =off
+	
+	[Peer]
+	PublicKey = ---> /etc/wireguard/keys/br-pub.key
+	AllowedIPs = 192.168.100.0/26, 10.1.1.0/30
+	
+systemctl enable --now wg-quick@wg0
+wg show wg0
+
+cat cli-sec.key srv-pub.key >> /home/admin/wg0.conf
+
+vim /home/admin/wg0.conf
+	[Interface]
+	Address = 1.2.3.2/29
+	ListenPort = 12345
+	PrivateKey = ---> /etc/wireguard/keys/cli-sec.key
+	Table =off
+	
+	[Peer]
+	PublicKey = ---> /etc/wireguard/keys/cli-pub.key
+	Endpoint = 10.1.1.2:12345
+	AllowedIPs = 192.168.200.0/28, 10.2.2.0/30
+	PersistentKeepalive = 10
+	
+Переходим в admin, копируем конфигурационный файл на BR-R
+scp wg0.conf admin@10.2.2.2:~/
+
+
+BR-R
+apt-get install -y wireguard-tools wireguard-tools-wg-quick
+cp /home/admin/wg0.conf /etc/wireguard/
+systemctl enable --now wg-quick@wg0
+wg show wg0

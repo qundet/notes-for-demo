@@ -1,0 +1,28 @@
+RAID 5
+
+BR-SRV
+Список дисков
+lsblk
+---не обязательные действия-------
+mdadm --zero-superblock --force /dev/sd{b,c,d}
+wipefs --all --force /dev/sd{b,c}
+-----------------------------------------------
+Создание массива
+mdadm --create --verbose /dev/md5 -l 5 -n 3 /dev/sd{b,c,d}
+проверка состояния массива
+cat /proc/mdstat
+создание и наполнение файла конфигурации и массиве
+mkdir /etc/mdadm
+echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
+
+echo $(mdadm --detail --scan) >> /etc/mdadm/mdadm.conf
+включение модуля программного RAID в автозагрузку
+make-initrd
+форматирование блочного устройства
+mkfs.ext4 /dev/md5
+создание точки монтирования
+mkdir /mnt/raid
+монтирование устройства
+mount /dev/md5 /mnt/raid
+проверка монтирования
+df
