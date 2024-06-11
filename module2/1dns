@@ -1,0 +1,55 @@
+DNS
+
+BR-SRV
+// для экономии времени
+apt-get update && apt-get distr-update -y 	 -обновляем дистрибутив
+apt-get install task-auth-ad-sssd -y   -устанавливаем ПО
+
+HQ-SRV
+apt-get update && apt-get install samba-dc -y 	-ставим пакет
+rm /etc/samba/smb.conf	 -удаляем конфиг
+samba-tool domain provision		-интерактивно ставим домен
+
+меняем DNS на себя
+systemctl enable --now samba.service	-запускаем сервис
+после
+установки
+меняем
+DNS
+на
+127.0.0.1
+(меняем настройки на HQ-R)
+==========создаем зоны=================================
+samba-tool dns zonecreate hq-srv.hq.work br.work -U administrator
+samba-tool dns zonecreate hq-srv.hq.work 100.168.192.in-addr.arpa -U
+administrator
+samba-tool dns zonecreate hq-srv.hq.work 200.168.192.in-addr.arpa -U
+administrator
+==========смотрим зоны=================================
+samba-tool dns zonelist hq-srv.hq.work -U administrator
+==========добавляем ресурсные записи типа А============
+samba-tool dns add hq-srv.hq.work hq.work hq-r A 192.168.100.1 -U
+administrator
+samba-tool dns add hq-srv.hq.work br.work br-r A 192.168.200.1 -U
+administrator
+samba-tool dns add hq-srv.hq.work br.work br-srv A 192.168.200.2 -U
+administrator
+==========добавляем ресурсные записи типа PTR==========
+samba-tool dns add hq-srv.hq.work 100.168.192.in-addr.arpa 1 PTR hq-
+r.hq.work -U administrator
+samba-tool dns add hq-srv.hq.work 200.168.192.in-addr.arpa 1 PTR br-
+r.hq.work -U administrator
+==========смотрим содержимое обратной зоны==========
+samba-tool dns query hq-srv.hq.work 100.168.192.in-addr.arpa @ ALL -U administrator
+==========проверяем любую запись==========
+host -t PTR 192.168.100.1
+==========создаем доменного пользователя========== (по желанию)
+samba-tool user create ИМЯ
+ создаем пользователя
+samba-tool user setexpiry ИМЯ –-noexpiry  включаем пользователя
+
+
+BR-SRV
+меняем DNS на 192.168.100.2
+#host -t SRV _kerberos._udp.hq.work
+#host -t SRV _ldap._tcp.hq.work
