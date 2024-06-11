@@ -1,0 +1,22 @@
+SSH
+
+HQ-R
+Правило проброса портов
+iptables -t nat -A PREROUTING -p tcp --dport 2222 -d
+192.168.100.2 -j DNAT --to-destination 192.168.100.2:22
+
+правило запрета для доступа по порту 22 на HQ-SRV
+iptables -A FORWARD -p tcp --dport 22 -d 192.168.100.2 -m
+conntrack ! --ctstate DNAT -j DROP
+
+iptables -S
+iptables -t nat -S
+
+# apply
+systemctl enable --now iptables
+iptables-save > /etc/sysconfig/iptables
+
+ISP
+ssh admin@192.168.100.1 -p 22
+ssh admin@192.168.100.2 -p 22
+ssh admin@192.168.100.2 -p 2222
